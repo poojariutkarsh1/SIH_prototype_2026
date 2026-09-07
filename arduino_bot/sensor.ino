@@ -1,3 +1,4 @@
+#include <SoftwareSerial.h>
 #include <Wire.h>
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
@@ -6,10 +7,10 @@
 // PIN DEFINITIONS
 // =====================================================
 
-#define TRIG_PIN 9
-#define ECHO_PIN 10
+#define TRIG_PIN 5
+#define ECHO_PIN 6
 #define IR_PIN 7
-
+SoftwareSerial espSerial(4, 3);  // RX, TX
 // =====================================================
 // FOG STATE
 // 1 = CLEAR
@@ -17,7 +18,7 @@
 // 3 = DENSE
 // =====================================================
 
-int fogState = 1;
+int fogState = 2;
 
 // =====================================================
 // BASE SPEEDS
@@ -160,6 +161,7 @@ int getBaseSpeed() {
 void setup() {
 
   Serial.begin(9600);
+  espSerial.begin(9600);
 
   // UART TO ESP8266
   // Add your chosen serial pins here if using SoftwareSerial.
@@ -446,19 +448,13 @@ void loop() {
 
         if (!dangerTriggered) {
 
-          Serial.println();
-          Serial.println("!!! DANGER DETECTED !!!");
+           Serial.println();
+  Serial.println("!!! DANGER DETECTED !!!");
 
-          // Send command to ESP
-          Serial.println("UART -> DANGER");
+  Serial.println("UART -> DANGER");
+  espSerial.println("DANGER");
 
-          // Replace this with your actual UART
-          // to ESP8266.
-          //
-          // Example:
-          // espSerial.println("DANGER");
-
-          dangerTriggered = true;
+  dangerTriggered = true;
         }
       }
 
@@ -472,8 +468,8 @@ void loop() {
 
           // Replace with ESP UART
           //
-          // espSerial.print("SAFE:");
-          // espSerial.println((int)finalPower);
+           espSerial.print("SAFE:");
+           espSerial.println((int)finalPower);
 
           Serial.println("UART -> SAFE");
         }
@@ -489,8 +485,8 @@ void loop() {
 
           // Replace with ESP UART
           //
-          // espSerial.print("CAUTION:");
-          // espSerial.println((int)finalPower);
+           espSerial.print("CAUTION:");
+           espSerial.println((int)finalPower);
 
           Serial.println("UART -> CAUTION");
         }
