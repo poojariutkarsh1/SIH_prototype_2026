@@ -66,7 +66,7 @@ void setup() {
 
   digitalWrite(LED_PIN, LOW);
 
-  noTone(BUZZER_PIN);
+  digitalWrite(BUZZER_PIN, LOW);
 
   Serial.println("================================");
   Serial.println("MINELANDER ESP8266");
@@ -352,7 +352,7 @@ void executeDangerSequence() {
   // LED remains ON
   digitalWrite(LED_PIN, HIGH);
 
-  noTone(BUZZER_PIN);
+  digitalWrite(BUZZER_PIN, LOW);
 
   Serial.println("DETOUR COMPLETE");
   Serial.println("BOT STOPPED");
@@ -377,11 +377,9 @@ void executeDangerSequence() {
 
 void safeBuzzer() {
 
-  tone(BUZZER_PIN, 1000);
-
-  delay(50);
-
-  noTone(BUZZER_PIN);
+    digitalWrite(BUZZER_PIN, HIGH);
+  delay(60);
+  digitalWrite(BUZZER_PIN, LOW);
 }
 
 // =====================================================
@@ -391,11 +389,9 @@ void safeBuzzer() {
 
 void cautionBuzzer() {
 
-  tone(BUZZER_PIN, 1500);
-
-  delay(200);
-
-  noTone(BUZZER_PIN);
+  digitalWrite(BUZZER_PIN, HIGH);
+  delay(250);
+  digitalWrite(BUZZER_PIN, LOW);
 }
 
 // =====================================================
@@ -404,14 +400,13 @@ void cautionBuzzer() {
 
 void aggressiveBuzzer() {
 
-  for (int i = 0; i < 3; i++) {
+    for (int i = 0; i < 4; i++) {
 
-    tone(BUZZER_PIN, 2500);
-
+    digitalWrite(BUZZER_PIN, HIGH);
     delay(150);
 
-    noTone(BUZZER_PIN);
+    digitalWrite(BUZZER_PIN, LOW);
+    delay(70);
 
-    delay(80);
   }
 }
