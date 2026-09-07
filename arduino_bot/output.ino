@@ -1,36 +1,46 @@
 // =====================================================
 // MINELANDER - ESP8266
-// MOTOR + LED + BUZZER
+// MOTOR + LED + ACTIVE BUZZER
 // =====================================================
+//
+// UART:
+// ESP8266 D5 (TX) -> Nano D4 (RX)
+// ESP8266 D6 (RX) <- Nano D3 (TX)
+//
+// MOTOR DRIVER:
+// ESP8266 D1 -> M1
+// ESP8266 D7 -> M2
+//
+// Other two motor-driver inputs are grounded.
+// =====================================================
+
+#include <SoftwareSerial.h>
 
 // =====================================================
 // PIN DEFINITIONS
-// ADD YOUR OWN PINS
 // =====================================================
 
 // Motor driver
-#define MOTOR_L_IN1  YOUR_PIN
-#define MOTOR_L_IN2  YOUR_PIN
-
-#define MOTOR_R_IN1  YOUR_PIN
-#define MOTOR_R_IN2  YOUR_PIN
-
-// If your driver has ENA/ENB:
-#define MOTOR_L_EN   YOUR_PIN
-#define MOTOR_R_EN   YOUR_PIN
+#define MOTOR_M1 D1
+#define MOTOR_M2 D7
 
 // LED
-#define LED_PIN      YOUR_PIN
+#define LED_PIN D4
 
-// Buzzer
-#define BUZZER_PIN   YOUR_PIN
+// Active buzzer
+#define BUZZER_PIN D2
+
+// UART
+#define ESP_RX D6
+#define ESP_TX D5
+
+SoftwareSerial nanoSerial(ESP_RX, ESP_TX);
 
 // =====================================================
 // VARIABLES
 // =====================================================
 
 bool dangerMode = false;
-
 int currentSpeed = 0;
 
 // =====================================================
@@ -39,38 +49,31 @@ int currentSpeed = 0;
 
 void setup() {
 
+  // USB Serial Monitor
   Serial.begin(9600);
 
+  // UART communication with Nano
+  nanoSerial.begin(9600);
+
   // Motor pins
-
-  pinMode(MOTOR_L_IN1, OUTPUT);
-  pinMode(MOTOR_L_IN2, OUTPUT);
-
-  pinMode(MOTOR_R_IN1, OUTPUT);
-  pinMode(MOTOR_R_IN2, OUTPUT);
-
-  pinMode(MOTOR_L_EN, OUTPUT);
-  pinMode(MOTOR_R_EN, OUTPUT);
+  pinMode(MOTOR_M1, OUTPUT);
+  pinMode(MOTOR_M2, OUTPUT);
 
   // LED
-
   pinMode(LED_PIN, OUTPUT);
 
-  // Buzzer
-
+  // Active buzzer
   pinMode(BUZZER_PIN, OUTPUT);
 
   // Initial state
-
   stopMotors();
-
   digitalWrite(LED_PIN, LOW);
-
   digitalWrite(BUZZER_PIN, LOW);
 
   Serial.println("================================");
   Serial.println("MINELANDER ESP8266");
   Serial.println("ACTUATOR SYSTEM READY");
+  Serial.println("WAITING FOR NANO...");
   Serial.println("================================");
 }
 
@@ -80,11 +83,18 @@ void setup() {
 
 void loop() {
 
-  if (Serial.available()) {
+  // ===================================================
+  // RECEIVE COMMAND FROM NANO
+  // ===================================================
 
-    String command = Serial.readStringUntil('\n');
+  if (nanoSerial.available()) {
 
+    String command = nanoSerial.readStringUntil('\n');
     command.trim();
+
+    // Print received command to USB Serial Monitor
+    Serial.print("NANO -> ESP: ");
+    Serial.println(command);
 
     // =================================================
     // SAFE
@@ -94,12 +104,9 @@ void loop() {
 
       if (!dangerMode) {
 
-        dangerMode = false;
-
         int speed = extractSpeed(command);
 
         driveForward(speed);
-
         safeBuzzer();
 
         digitalWrite(LED_PIN, LOW);
@@ -114,12 +121,9 @@ void loop() {
 
       if (!dangerMode) {
 
-        dangerMode = false;
-
         int speed = extractSpeed(command);
 
         driveForward(speed);
-
         cautionBuzzer();
 
         digitalWrite(LED_PIN, LOW);
@@ -145,9 +149,9 @@ void loop() {
 // =====================================================
 // EXTRACT SPEED
 //
-// Example:
+// Examples:
 // SAFE:80
-// CAUTION:40
+// CAUTION:30
 // =====================================================
 
 int extractSpeed(String command) {
@@ -173,21 +177,16 @@ void driveForward(int speed) {
 
   currentSpeed = speed;
 
-  // Set direction
+  // ===================================================
+  // BOTH MOTOR CONTROL LINES HIGH
+  // ===================================================
 
-  digitalWrite(MOTOR_L_IN1, HIGH);
-  digitalWrite(MOTOR_L_IN2, LOW);
+  digitalWrite(MOTOR_M1, HIGH);
+  digitalWrite(MOTOR_M2, HIGH);
 
-  digitalWrite(MOTOR_R_IN1, HIGH);
-  digitalWrite(MOTOR_R_IN2, LOW);
-
-  // PWM
-
-  int pwm =
-    map(speed, 0, 100, 0, 1023);
-
-  analogWrite(MOTOR_L_EN, pwm);
-  analogWrite(MOTOR_R_EN, pwm);
+  Serial.print("FORWARD - SPEED: ");
+  Serial.print(speed);
+  Serial.println("%");
 }
 
 // =====================================================
@@ -196,59 +195,39 @@ void driveForward(int speed) {
 
 void stopMotors() {
 
-  analogWrite(MOTOR_L_EN, 0);
-  analogWrite(MOTOR_R_EN, 0);
-
-  digitalWrite(MOTOR_L_IN1, LOW);
-  digitalWrite(MOTOR_L_IN2, LOW);
-
-  digitalWrite(MOTOR_R_IN1, LOW);
-  digitalWrite(MOTOR_R_IN2, LOW);
+  digitalWrite(MOTOR_M1, LOW);
+  digitalWrite(MOTOR_M2, LOW);
 
   currentSpeed = 0;
 }
 
 // =====================================================
-// TURN RIGHT
+// TURN RIGHT 90 DEGREES
 // =====================================================
 
 void turnRight90() {
 
-  // Left wheel forward
-  digitalWrite(MOTOR_L_IN1, HIGH);
-  digitalWrite(MOTOR_L_IN2, LOW);
+  Serial.println("TURNING RIGHT 90");
 
-  // Right wheel backward
-  digitalWrite(MOTOR_R_IN1, LOW);
-  digitalWrite(MOTOR_R_IN2, HIGH);
+  digitalWrite(MOTOR_M1, HIGH);
+  digitalWrite(MOTOR_M2, LOW);
 
-  analogWrite(MOTOR_L_EN, 700);
-  analogWrite(MOTOR_R_EN, 700);
-
-  // CALIBRATE THIS TIME
   delay(700);
 
   stopMotors();
 }
 
 // =====================================================
-// TURN LEFT
+// TURN LEFT 90 DEGREES
 // =====================================================
 
 void turnLeft90() {
 
-  // Left wheel backward
-  digitalWrite(MOTOR_L_IN1, LOW);
-  digitalWrite(MOTOR_L_IN2, HIGH);
+  Serial.println("TURNING LEFT 90");
 
-  // Right wheel forward
-  digitalWrite(MOTOR_R_IN1, HIGH);
-  digitalWrite(MOTOR_R_IN2, LOW);
+  digitalWrite(MOTOR_M1, LOW);
+  digitalWrite(MOTOR_M2, HIGH);
 
-  analogWrite(MOTOR_L_EN, 700);
-  analogWrite(MOTOR_R_EN, 700);
-
-  // CALIBRATE THIS TIME
   delay(700);
 
   stopMotors();
@@ -259,6 +238,8 @@ void turnLeft90() {
 // =====================================================
 
 void forwardThreeSeconds() {
+
+  Serial.println("FORWARD 3 SECONDS");
 
   driveForward(50);
 
@@ -273,91 +254,97 @@ void forwardThreeSeconds() {
 
 void executeDangerSequence() {
 
+  Serial.println();
+  Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!");
   Serial.println("!!! DANGER !!!");
+  Serial.println("!!!!!!!!!!!!!!!!!!!!!!!!");
 
-  // ================================================
+  // =================================================
   // IMMEDIATE STOP
-  // ================================================
+  // =================================================
 
   stopMotors();
 
-  // ================================================
+  // =================================================
   // LED ON
-  // ================================================
+  // =================================================
 
   digitalWrite(LED_PIN, HIGH);
 
-  // ================================================
+  // =================================================
   // AGGRESSIVE BUZZER
-  // ================================================
+  // =================================================
 
   aggressiveBuzzer();
 
   delay(500);
 
-  // ================================================
+  // =================================================
   // RIGHT 90
-  // ================================================
+  // =================================================
 
   turnRight90();
 
-  // ================================================
+  // =================================================
   // FORWARD 3 SEC
-  // ================================================
+  // =================================================
 
   forwardThreeSeconds();
 
-  // ================================================
+  // =================================================
   // LEFT 90
-  // ================================================
+  // =================================================
 
   turnLeft90();
 
-  // ================================================
+  // =================================================
   // FORWARD 3 SEC
-  // ================================================
+  // =================================================
 
   forwardThreeSeconds();
 
-  // ================================================
+  // =================================================
   // LEFT 90
-  // ================================================
+  // =================================================
 
   turnLeft90();
 
-  // ================================================
+  // =================================================
   // FORWARD 3 SEC
-  // ================================================
+  // =================================================
 
   forwardThreeSeconds();
 
-  // ================================================
+  // =================================================
   // RIGHT 90
-  // ================================================
+  // =================================================
 
   turnRight90();
 
-  // ================================================
+  // =================================================
   // FINAL FORWARD 3 SEC
-  // ================================================
+  // =================================================
 
   forwardThreeSeconds();
 
-  // ================================================
+  // =================================================
   // FINAL STOP
-  // ================================================
+  // =================================================
 
   stopMotors();
 
-  // LED remains ON
   digitalWrite(LED_PIN, HIGH);
 
-  digitalWrite(BUZZER_PIN, LOW);
-
+  Serial.println();
+  Serial.println("================================");
   Serial.println("DETOUR COMPLETE");
   Serial.println("BOT STOPPED");
+  Serial.println("================================");
 
-  // Remain in danger mode
+  // =================================================
+  // REMAIN IN DANGER MODE
+  // =================================================
+
   while (true) {
 
     stopMotors();
@@ -372,25 +359,27 @@ void executeDangerSequence() {
 
 // =====================================================
 // SAFE BUZZER
-// LIGHT BEEP
 // =====================================================
 
 void safeBuzzer() {
 
-    digitalWrite(BUZZER_PIN, HIGH);
-  delay(60);
+  digitalWrite(BUZZER_PIN, HIGH);
+
+  delay(150);
+
   digitalWrite(BUZZER_PIN, LOW);
 }
 
 // =====================================================
 // CAUTION BUZZER
-// MEDIUM BEEP
 // =====================================================
 
 void cautionBuzzer() {
 
   digitalWrite(BUZZER_PIN, HIGH);
+
   delay(250);
+
   digitalWrite(BUZZER_PIN, LOW);
 }
 
@@ -400,13 +389,14 @@ void cautionBuzzer() {
 
 void aggressiveBuzzer() {
 
-    for (int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
 
     digitalWrite(BUZZER_PIN, HIGH);
+
     delay(150);
 
     digitalWrite(BUZZER_PIN, LOW);
-    delay(70);
 
+    delay(70);
   }
 }
