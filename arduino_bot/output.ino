@@ -25,10 +25,10 @@
 #define MOTOR_M2 D7
 
 // LED
-#define LED_PIN D4
+#define LED_PIN D2
 
 // Active buzzer
-#define BUZZER_PIN D2
+#define BUZZER_PIN D4
 
 // UART
 #define ESP_RX D6
@@ -177,16 +177,11 @@ void driveForward(int speed) {
 
   currentSpeed = speed;
 
-  // ===================================================
-  // BOTH MOTOR CONTROL LINES HIGH
-  // ===================================================
+  // 30% PWM on both motor control inputs
+  analogWrite(MOTOR_M1, 307);
+  analogWrite(MOTOR_M2, 307);
 
-  digitalWrite(MOTOR_M1, HIGH);
-  digitalWrite(MOTOR_M2, HIGH);
-
-  Serial.print("FORWARD - SPEED: ");
-  Serial.print(speed);
-  Serial.println("%");
+  Serial.println("MOTOR ON - PWM: 30%");
 }
 
 // =====================================================
@@ -195,12 +190,11 @@ void driveForward(int speed) {
 
 void stopMotors() {
 
-  digitalWrite(MOTOR_M1, LOW);
-  digitalWrite(MOTOR_M2, LOW);
+  analogWrite(MOTOR_M1, 0);
+  analogWrite(MOTOR_M2, 0);
 
   currentSpeed = 0;
 }
-
 // =====================================================
 // TURN RIGHT 90 DEGREES
 // =====================================================
@@ -209,8 +203,8 @@ void turnRight90() {
 
   Serial.println("TURNING RIGHT 90");
 
-  digitalWrite(MOTOR_M1, HIGH);
-  digitalWrite(MOTOR_M2, LOW);
+  analogWrite(MOTOR_M1, 307);
+  analogWrite(MOTOR_M2, 0);
 
   delay(700);
 
@@ -224,9 +218,8 @@ void turnRight90() {
 void turnLeft90() {
 
   Serial.println("TURNING LEFT 90");
-
-  digitalWrite(MOTOR_M1, LOW);
-  digitalWrite(MOTOR_M2, HIGH);
+  analogWrite(MOTOR_M1, 0);
+  analogWrite(MOTOR_M2, 307);
 
   delay(700);
 
