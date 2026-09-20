@@ -1,0 +1,19 @@
+Panels:
+  - Class: rviz_common/Displays
+    Name: Displays
+Visualization Manager:
+  Displays:
+    - Class: rviz_default_plugins/Grid
+      Name: Grid
+      Reference Frame: <Fixed Frame>
+    - Class: rviz_default_plugins/LaserScan
+      Name: LaserScan
+      Topic:
+        Value: /scan
+      Size (Pixels): 3
+      Style: Points
+  Global Options:
+    Fixed Frame: laser
+  Views:
+    Current:
+      Class: rviz_default_plugins/Orbit
