@@ -234,7 +234,7 @@ Note that the diagram's status vocabulary (`safe | danger | critical`) differs f
   <img src="docs/images/hardware-perfboard.jpeg" alt="Minelander perfboard with sensors and controllers" width="360">
 </p>
 
-*The hand-assembled perfboard. Visible: IR obstacle module and ultrasonic sensor (left edge), a small purple breakout board, a blue MPU6050 breakout, the Arduino Nano, and the ESP8266 (NodeMCU-style) board.*
+*The hand-assembled perfboard. Visible: IR obstacle module and ultrasonic sensor (left edge), a small BME board, a blue MPU6050 breakout, the Arduino Nano, and the ESP8266 (NodeMCU-style) board.*
 
 The assembled RC prototype is shown in [Prototype and Results](#prototype-and-results).
 
