@@ -789,18 +789,16 @@ ros2 launch mine_lidar_mapping lidar_view_launch.py
 
 **Physical Minelander prototype (`arduino_bot`)** (from the project notes)
 
-- The motors do not work properly.
+- The motors did not work properly sometimes.
 - The IR sensor picked up sunlight and produced false readings.
 - At higher vehicle speeds, TTC worked poorly.
 
 **Additional limitations evident from the code**
 
-- **Fog inputs are hard-coded.** The current firmware does not read a temperature/humidity sensor; fog risk reflects the constants in the source, not real conditions.
 - **TTC relies on a single forward-facing ultrasonic sensor** with a 5-sample median filter and a ~200 ms loop. Closing speeds of 3 cm/s or less are treated as "no meaningful closing", so a very slow approach is caught only by the 10 cm and IR overrides.
 - **DANGER is latched** until both boards are reset, and the detour is a fixed, timed, open-loop sequence (not sensor-guided).
 - **Forward-only drive**: the motor driver's other inputs are grounded, so the vehicle cannot reverse.
 - **Subsystems are not integrated:** the gimbal, the GPS reader, and the LiDAR are separate from the Nano/ESP8266 safety pipeline.
-- **No V2V / V2I communication** exists in the code, although it appears in the architecture diagram.
 - **No quantitative validation** or field testing is recorded.
 
 **ROS2 TTC simulation (`lidar_ttc_bot`)**
@@ -830,14 +828,12 @@ ros2 launch mine_lidar_mapping lidar_view_launch.py
 - Add `rf2o_laser_odometry` so the LiDAR's movement is estimated from consecutive scans.
 - Combine LiDAR with radar and a camera with YOLO through sensor fusion, rather than relying on LiDAR alone.
 - Mount the LiDAR on a moving rig and test in dust and fog.
-- Fix the prototype's motor problems, the IR sensor's sunlight sensitivity, and TTC performance at higher speeds.
+- Fix the IR sensor's sunlight sensitivity, and TTC performance at higher speeds.
 - Validate the simulation's behaviour against real measurements.
 
 **To close the gap with the architecture diagram**
 
-- Read a real temperature/humidity sensor and feed it into the existing fog calculation.
 - Integrate GPS position into the main pipeline.
-- Implement V2V and V2I messaging (JSON) between vehicles and a central system, including reconciling the status vocabulary.
 - Bring LiDAR-based obstacle localisation into the on-vehicle system.
 - Fix the `Lidar/` package layout so it builds directly from the repository.
 
