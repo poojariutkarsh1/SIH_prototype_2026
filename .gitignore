@@ -1,0 +1,12 @@
+# ROS2 generated files
+build/
+install/
+log/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# ROS2 bag files
+*.bag
+*.db3
